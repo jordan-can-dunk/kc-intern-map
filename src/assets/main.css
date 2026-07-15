@@ -1,0 +1,214 @@
+/* ==========================================================================
+   KC INTERN MAP — Design Tokens v1 (approved)
+   Bright, vintage, a little chaotic. Kansas City wearing its own colors.
+   ========================================================================== */
+
+:root {
+  /* Anchors — the KC identity. Hierarchy, buttons, headlines, the heart pin. */
+  --kc-red: #e31837;
+  --kc-gold: #ffb81c;
+  --kc-royal: #004687;
+
+  /* Ground & ink */
+  --cream: #f6ecdc;
+  --cream-deep: #efdfc5;
+  --paper: #fffdf7;
+  --ink: #1e1b18;
+
+  /* Chaos accents — patterns, stickers, confetti, hover surprises ONLY */
+  --chaos-pink: #ff4fa0;
+  --chaos-teal: #0fb5a6;
+  --chaos-purple: #7a3ff2;
+  --chaos-lime: #9fd400;
+  --chaos-powder: #7ab2dd;
+
+  /* Type */
+  --font-display: 'Modak', cursive;
+  --font-varsity: 'Graduate', serif;
+  --font-body: 'Nunito', ui-rounded, 'SF Pro Rounded', system-ui, sans-serif;
+
+  /* Motion */
+  --ease-bounce: cubic-bezier(0.45, 0.85, 0.34, 1.12);
+  --ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-scrub: cubic-bezier(0.65, 0, 0.35, 1);
+  --t-micro: 150ms;
+  --t-quick: 300ms;
+  --t-base: 500ms;
+  --t-entrance: 800ms;
+
+  /* Spacing — 8pt scale */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 16px;
+  --sp-4: 24px;
+  --sp-5: 32px;
+  --sp-6: 48px;
+  --sp-7: 64px;
+  --sp-8: 96px;
+  --sp-9: 128px;
+
+  /* Shape */
+  --r-chip: 12px;
+  --r-card: 24px;
+  --r-pill: 999px;
+  --r-blob: 58% 42% 38% 62% / 52% 44% 56% 48%;
+  --border-ink: 3px solid var(--ink);
+  --shadow-ink: 4px 4px 0 var(--ink);
+  --shadow-ink-lift: 7px 8px 0 var(--ink);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  /* Lenis drives scrolling; native smooth off so they don't fight */
+  scroll-behavior: auto;
+}
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+body {
+  margin: 0;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.1;
+  margin: 0;
+}
+
+button {
+  font-family: inherit;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* Shared button recipes */
+.btn-kc {
+  font-family: var(--font-varsity);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  border: var(--border-ink);
+  border-radius: var(--r-pill);
+  padding: 14px 28px;
+  cursor: pointer;
+  box-shadow: var(--shadow-ink);
+  transition:
+    transform var(--t-micro) var(--ease-bounce),
+    box-shadow var(--t-micro) var(--ease-bounce);
+}
+
+.btn-kc:hover {
+  transform: translate(-2px, -3px);
+  box-shadow: 6px 7px 0 var(--ink);
+}
+
+.btn-kc:active {
+  transform: translate(2px, 3px);
+  box-shadow: 0 0 0 var(--ink);
+}
+
+.btn-kc:focus-visible {
+  outline: 3px solid var(--kc-royal);
+  outline-offset: 3px;
+}
+
+.btn-kc--red {
+  background: var(--kc-red);
+  color: var(--paper);
+}
+
+.btn-kc--paper {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.btn-kc--gold {
+  background: var(--kc-gold);
+  color: var(--ink);
+}
+
+/* ==========================================================================
+   KC heart map pins — global because Leaflet divIcon markup renders
+   outside any Vue component's scoped styles (used by MapView + PinDetail)
+   ========================================================================== */
+
+.kc-divicon {
+  background: none;
+  border: none;
+}
+
+.kc-pin {
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  transform-origin: 50% 90%;
+  transition: transform var(--t-quick) var(--ease-bounce);
+  filter: drop-shadow(2px 3px 0 rgba(30, 27, 24, 0.45));
+}
+
+.kc-pin:hover {
+  transform: scale(1.18) rotate(-4deg);
+}
+
+.kc-pin.is-selected {
+  animation: kc-pin-pulse 1.6s var(--ease-bounce) infinite;
+}
+
+@keyframes kc-pin-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  14% {
+    transform: scale(1.16) rotate(-3deg);
+  }
+  28% {
+    transform: scale(1);
+  }
+}
+
+.kc-pin.pop-in {
+  animation: kc-pop-in 0.5s var(--ease-bounce) backwards;
+}
+
+@keyframes kc-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

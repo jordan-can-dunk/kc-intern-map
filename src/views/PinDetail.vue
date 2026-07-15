@@ -1,111 +1,227 @@
 <script setup>
-import { ref } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { LMap, LTileLayer, LMarker } from '@vue-leaflet/vue-leaflet'
+import L from 'leaflet'
+import { gsap } from 'gsap'
 import { pins } from '../data/pins.js'
 
 const route = useRoute()
 const router = useRouter()
+const root = ref(null)
 
-const pin = pins.find(p => p.id === Number(route.params.id))
-/*route.params.id reads :id from route(current URL) so if the URL is /pin/5, route.params.id will be 5
-Number() converts string to number becasue URL params are always strings
-pins.find loops through every pin and returns first pin where condition is true
-p =>is just a nickname for each pin in the array
-full consdition is find the pin whose id matches number from URL */
+// :id from the URL is a string; pin ids are numbers
+const pin = pins.find((p) => p.id === Number(route.params.id))
 
 const currentIndex = ref(0)
-/* tracks which photo the carousel is showing */
+let ctx
 
 function prevPhoto() {
-  currentIndex.value = currentIndex.value - 1
+  if (currentIndex.value > 0) currentIndex.value--
 }
 
 function nextPhoto() {
-  currentIndex.value = currentIndex.value + 1
+  if (currentIndex.value < pin.photos.length - 1) currentIndex.value++
 }
+
+/* slide + fade the photo in from the direction you're moving */
+watch(currentIndex, (newIdx, oldIdx) => {
+  const dir = newIdx > oldIdx ? 1 : -1
+  gsap.fromTo(
+    '.carousel-photo',
+    { autoAlpha: 0.25, x: 44 * dir },
+    { autoAlpha: 1, x: 0, duration: 0.45, ease: 'power2.out' },
+  )
+})
+
+/* swipe support — phones are the primary platform */
+let touchStartX = null
+function onTouchStart(e) {
+  touchStartX = e.changedTouches[0].clientX
+}
+function onTouchEnd(e) {
+  if (touchStartX === null) return
+  const dx = e.changedTouches[0].clientX - touchStartX
+  if (Math.abs(dx) > 40) (dx < 0 ? nextPhoto : prevPhoto)()
+  touchStartX = null
+}
+
+/* KC heart marker for the mini-map */
+const heartIcon = L.divIcon({
+  className: 'kc-divicon',
+  html: `<div class="kc-pin is-selected">
+    <svg viewBox="0 0 100 92" width="100%" height="100%">
+      <path d="M50 88 C22 68 4 50 4 30 C4 13 17 4 29 4 C38 4 46 9 50 16 C54 9 62 4 71 4 C83 4 96 13 96 30 C96 50 78 68 50 88 Z"
+        fill="#e31837" stroke="#1e1b18" stroke-width="5"/>
+      <text x="34" y="52" text-anchor="middle" font-family="Graduate, serif" font-size="30" fill="#fffdf7">K</text>
+      <text x="64" y="52" text-anchor="middle" font-family="Graduate, serif" font-size="30" fill="#fffdf7">C</text>
+    </svg>
+  </div>`,
+  iconSize: [42, 39],
+  iconAnchor: [21, 37],
+})
+
+// static snapshot feel: no drag/zoom scroll-traps on mobile
+const miniMapOptions = {
+  zoomControl: false,
+  dragging: false,
+  scrollWheelZoom: false,
+  doubleClickZoom: false,
+  touchZoom: false,
+  boxZoom: false,
+  keyboard: false,
+}
+
+function formatDate(iso) {
+  return new Date(`${iso}T12:00:00`).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
+}
+
+onMounted(() => {
+  if (!root.value || !pin) return
+  ctx = gsap.context(() => {
+    gsap.from('.reveal', {
+      autoAlpha: 0,
+      y: 44,
+      stagger: 0.09,
+      duration: 0.6,
+      ease: 'back.out(1.5)',
+      clearProps: 'all',
+    })
+  }, root.value)
+})
+
+onUnmounted(() => {
+  ctx?.revert()
+})
 </script>
 
 <template>
-  <div class="detail-container">
+  <!-- bad URL guard: /pin/999 shouldn't crash the page -->
+  <div v-if="!pin" class="lost">
+    <svg viewBox="0 0 100 92" width="72" height="66" aria-hidden="true">
+      <path
+        d="M50 88 C22 68 4 50 4 30 C4 13 17 4 29 4 C38 4 46 9 50 16 C54 9 62 4 71 4 C83 4 96 13 96 30 C96 50 78 68 50 88 Z"
+        fill="#efdfc5"
+        stroke="#1e1b18"
+        stroke-width="4"
+      />
+    </svg>
+    <h1 class="lost-title">This pin wandered off.</h1>
+    <p>It might have been removed, or the link is off by a digit.</p>
+    <button class="btn-kc btn-kc--red" @click="router.push('/map')">Back to the map</button>
+  </div>
 
-    <div class="carousel">
-      <img :src="pin.photos[currentIndex]" class="carousel-photo" />
+  <div v-else ref="root" class="detail-container">
+    <!-- ============ CAROUSEL ============ -->
+    <div class="carousel reveal" @touchstart.passive="onTouchStart" @touchend.passive="onTouchEnd">
+      <img :src="pin.photos[currentIndex]" :alt="`Photo ${currentIndex + 1} of ${pin.name}`" class="carousel-photo" />
 
-      <button class="carousel-btn prev" v-if="currentIndex > 0" @click="prevPhoto">‹</button>
-      <button class="carousel-btn next" v-if="currentIndex < pin.photos.length - 1" @click="nextPhoto">›</button>
+      <button v-if="currentIndex > 0" class="carousel-btn prev" aria-label="Previous photo" @click="prevPhoto">‹</button>
+      <button
+        v-if="currentIndex < pin.photos.length - 1"
+        class="carousel-btn next"
+        aria-label="Next photo"
+        @click="nextPhoto"
+      >
+        ›
+      </button>
 
-      <span class="carousel-counter">{{ currentIndex + 1 }} / {{ pin.photos.length }}</span> <!--turns array counting into normal counting so in arry 0 but it shows 1 -->
+      <span class="carousel-counter">{{ currentIndex + 1 }} / {{ pin.photos.length }}</span>
 
-      <div class="carousel-dots" v-if="pin.photos.length > 1">
-        <span 
+      <div v-if="pin.photos.length > 1" class="carousel-dots">
+        <button
           v-for="(photo, index) in pin.photos"
           :key="index"
           class="dot"
           :class="{ active: index === currentIndex }"
+          :aria-label="`Go to photo ${index + 1}`"
+          @click="currentIndex = index"
         />
-          <!-- span is self-closing and its used to style a specific something or loop something -->
       </div>
     </div>
-    
+
     <div class="info-section">
-      <h1 class="place-name">{{ pin.name }}</h1>
-        <div class="place-rating">
-          <span v-for="n in pin.rating" :key="n">★</span>
-          <span v-for="n in (5 - pin.rating)" :key="'empty-' + n">☆</span>
-        </div>
-      <div class="section">
-        <h2 class="section-label">DESCRIPTION</h2>
-        <p class="section-text">{{ pin.description }}</p>
-      </div>
-      <div class="section" v-if="pin.tips">
-        <h2 class="section-label">TIPS</h2>
-        <p class="section-text">{{ pin.tips }}</p>
+      <div class="reveal">
+        <h1 class="place-name">{{ pin.name }}</h1>
+        <p class="place-rating" :aria-label="pin.rating + ' out of 5 stars'">
+          <span class="stars">{{ '★'.repeat(pin.rating) }}{{ '☆'.repeat(5 - pin.rating) }}</span>
+          <span class="rating-label">{{ pin.rating }}/5</span>
+        </p>
       </div>
 
-      <div class="section">
-        <h2 class="section-label">LOCATION</h2>
+      <div class="section reveal">
+        <h2 class="section-label">Description</h2>
+        <p class="section-text">{{ pin.description }}</p>
+      </div>
+
+      <!-- tips render as a gold sticky note, only when an intern left one -->
+      <div v-if="pin.tips" class="section reveal">
+        <h2 class="section-label">Intern tip</h2>
+        <div class="tip-note">
+          <p class="section-text">{{ pin.tips }}</p>
+        </div>
+      </div>
+
+      <div class="section reveal">
+        <h2 class="section-label">Location</h2>
         <div class="mini-map-container">
-          <l-map :zoom="14" :center="[pin.lat, pin.lng]" :zoom-control="false" style="height: 100%;">
+          <l-map :zoom="15" :center="[pin.lat, pin.lng]" :options="miniMapOptions" style="height: 100%">
             <l-tile-layer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution="&copy; OpenStreetMap contributors"
+              url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+              :options="{ subdomains: 'abcd', maxZoom: 20 }"
             />
-            <l-marker :lat-lng="[pin.lat, pin.lng]" />
+            <l-marker :lat-lng="[pin.lat, pin.lng]" :icon="heartIcon" />
           </l-map>
         </div>
         <a
-          class="maps-btn"
+          class="btn-kc btn-kc--red maps-btn"
           :href="`https://www.google.com/maps?q=${pin.lat},${pin.lng}`"
           target="_blank"
+          rel="noopener"
         >
           Open in Google Maps ↗
         </a>
       </div>
 
-      <p class="submitted-by">
-        Submitted by {{ pin.submittedBy || 'Anonymous' }} on {{ pin.submittedAt }}
+      <p class="submitted-by reveal">
+        <svg viewBox="0 0 100 92" width="15" height="14" aria-hidden="true">
+          <path
+            d="M50 88 C22 68 4 50 4 30 C4 13 17 4 29 4 C38 4 46 9 50 16 C54 9 62 4 71 4 C83 4 96 13 96 30 C96 50 78 68 50 88 Z"
+            fill="#e31837"
+          />
+        </svg>
+        Pinned by {{ pin.submittedBy || 'Anonymous' }} · {{ formatDate(pin.submittedAt) }}
       </p>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* Carousel Section */
-
 .detail-container {
-  max-width: 600px;
+  max-width: 640px;
   margin: 0 auto;
+  padding: var(--sp-4) var(--sp-3) var(--sp-7);
 }
 
+/* ============ carousel ============ */
 .carousel {
   position: relative;
   width: 100%;
+  border: var(--border-ink);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-ink);
+  overflow: hidden;
+  background: var(--cream-deep);
 }
 
 .carousel-photo {
   width: 100%;
-  aspect-ratio: 4/3;
+  aspect-ratio: 4 / 3;
   object-fit: cover;
   display: block;
 }
@@ -114,114 +230,198 @@ function nextPhoto() {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(0, 0, 0, 0.4);
-  color: white;
-  border: none;
-  font-size: 2rem;
-  width: 2.5rem;
-  height: 2.5rem;
+  background: var(--paper);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  font-size: 1.6rem;
+  line-height: 1;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 2px 3px 0 var(--ink);
+  transition:
+    transform var(--t-micro) var(--ease-bounce),
+    box-shadow var(--t-micro) var(--ease-bounce);
 }
 
-.prev { left: 0.75rem; }
-.next { right: 0.75rem; }
+.carousel-btn:hover {
+  transform: translateY(-50%) scale(1.12);
+  box-shadow: 3px 4px 0 var(--ink);
+}
+
+.carousel-btn:active {
+  transform: translateY(-50%) scale(0.94);
+  box-shadow: 0 0 0 var(--ink);
+}
+
+.prev {
+  left: var(--sp-3);
+}
+
+.next {
+  right: var(--sp-3);
+}
 
 .carousel-counter {
   position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  background: rgba(0, 0, 0, 0.5);
-  color: white;
-  font-size: 0.75rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 1rem;
+  top: var(--sp-3);
+  right: var(--sp-3);
+  background: var(--ink);
+  color: var(--cream);
+  font-family: var(--font-varsity);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  padding: 5px 12px;
+  border-radius: var(--r-pill);
 }
 
 .carousel-dots {
+  position: absolute;
+  bottom: var(--sp-3);
+  left: 0;
+  right: 0;
   display: flex;
   justify-content: center;
-  gap: 0.4rem;
-  padding: 0.75rem 0;
+  gap: var(--sp-2);
 }
 
 .dot {
-  width: 0.5rem;
-  height: 0.5rem;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
-  background: #ccc;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  padding: 0;
+  cursor: pointer;
+  transition:
+    transform var(--t-quick) var(--ease-bounce),
+    background var(--t-quick) ease;
 }
 
 .dot.active {
-  background: #4a90d9;
+  background: var(--kc-red);
+  transform: scale(1.35);
 }
 
-/* Info Section*/
+/* ============ info ============ */
 .info-section {
-  padding: 1.25rem 1rem;
+  padding: var(--sp-5) var(--sp-1) 0;
 }
-/*breathing room around all text, 1.25 top/bottom 1 left/right */
 
 .place-name {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-bottom: 0.50rem;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.9rem, 6vw, 2.6rem);
+  line-height: 1.05;
+  margin-bottom: var(--sp-2);
 }
-/*gap between name and rating */
 
 .place-rating {
-  color: #f5a623;
-  font-size: 1.1rem;
-  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  margin: 0 0 var(--sp-5);
+}
+
+.stars {
+  color: var(--kc-gold);
+  -webkit-text-stroke: 0.8px var(--ink);
+  font-size: 1.3rem;
+  letter-spacing: 2px;
+}
+
+.rating-label {
+  font-family: var(--font-varsity);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
 }
 
 .section {
-  margin-bottom: 1.25rem;
+  margin-bottom: var(--sp-5);
 }
 
 .section-label {
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: #999;
+  font-family: var(--font-varsity);
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  color: var(--kc-royal);
   text-transform: uppercase;
-  margin-bottom: 0.4rem;
+  margin: 0 0 var(--sp-2);
 }
 
 .section-text {
-  font-size: 0.95rem;
+  font-size: 0.98rem;
   line-height: 1.6;
-  color: #333;
+  margin: 0;
 }
 
-.submitted-by {
-  font-size: 0.8rem;
-  color: #999;
-  margin-top: 0.5rem;
+/* the intern tip reads like a sticky note left on the fridge */
+.tip-note {
+  background: var(--kc-gold);
+  border: 2px solid var(--ink);
+  border-radius: var(--r-chip);
+  box-shadow: 3px 3px 0 var(--ink);
+  padding: var(--sp-3) var(--sp-4);
+  rotate: -0.6deg;
 }
 
-/* Mini Map Container */
+/* ============ mini-map ============ */
 .mini-map-container {
-  height: 180px;
-  border-radius: 0.75rem;
+  height: 200px;
+  border: var(--border-ink);
+  border-radius: var(--r-card);
   overflow: hidden;
-  margin-bottom: 0.75rem;
+  margin-bottom: var(--sp-3);
+  box-shadow: var(--shadow-ink);
+  /* leaflet panes stack above page content without this */
+  position: relative;
+  z-index: 0;
 }
 
 .maps-btn {
   display: inline-block;
-  /*<a>tags are inline by default which means padding behaves strangely on them. inline-block makes it behave like a block so padding properly works*/
-  background-color: #4a90d9;
-  color: white;
   text-decoration: none;
-  /*browsers automatically underline <a> tags but this removes that underline */
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 0.8rem;
+  padding: 12px 24px;
 }
 
+.submitted-by {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-family: var(--font-varsity);
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0.75;
+  margin: var(--sp-6) 0 0;
+}
+
+/* ============ lost pin ============ */
+.lost {
+  min-height: calc(100dvh - 60px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
+  text-align: center;
+  padding: var(--sp-4);
+}
+
+.lost-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.8rem, 6vw, 2.6rem);
+}
+
+.lost p {
+  margin: 0 0 var(--sp-3);
+}
 </style>

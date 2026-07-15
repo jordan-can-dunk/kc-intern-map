@@ -57,5 +57,19 @@ export const pins = [
     ],
     submittedBy: "Tyler",
     submittedAt: "2025-06-12"
+  },
+  {
+    id: 5,
+    name: "Joe's Kansas City Bar-B-Que",
+    lat: 39.0397,
+    lng: -94.5944,
+    rating: 5,
+    description: "Came for the Z-Man, stayed for the burnt ends. Worth every minute of the line.",
+    tips: "The gas station entrance is the real one. Cash moves faster than card.",
+    photos: [
+      "https://picsum.photos/seed/joes2/600/400",
+    ],
+    submittedBy: "Dana",
+    submittedAt: "2025-06-18"
   }
 ]
