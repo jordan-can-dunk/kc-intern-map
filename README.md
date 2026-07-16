@@ -1,23 +1,26 @@
-# interactive-map
+## Project History
 
-This template should help get you started developing with Vue 3 in Vite.
+This project started as a version of the KC Intern Map that I built manually by hand. After getting familiar with that base code, I wanted to experiment with AI-assisted development to see how much of the frontend I could redo by prompting an AI instead of writing it myself.
 
-## Recommended IDE Setup
+This repository/branch represents that experiment: I cloned my original, manually-built version and used **Claude Fable 5** — prompted directly, with no external tools, plugins, or add-ons — to rebuild the frontend. Because it was a single well-crafted prompt with no extra tooling, this isn't a showcase of everything Fable 5 is capable of; it's a snapshot of what's was achieveable for me with only prompting it.
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+This branch (`first-AI-design`) exists specifically so the progression is visible over time:
 
-## Recommended Browser Setup
+1. **Original manual build (original-design branch) ** — the base version I built file by file.
+2. **First AI design (this branch)** — the frontend rebuilt by prompting Claude Fable 5, no plugins/add-ons.
+3. **Second AI design (main branch)** — the second frontend rebuild with Claude Fable 5.
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+The goal is to keep each stage as its own visible step, so the change in approach and results is easy to compare over time.
 
-## Customize configuration
+# KC Intern Map Repo
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+An interactive map for interns in Kansas City to share and discover their favorite spots around the city — restaurants, parks, hangouts, whatever's worth visiting. The idea is simple: interns often only have a summer (or a semester) to explore a new city, and the best recommendations usually come from other interns, not a generic guide. This app is meant to help interns pin the places they love so others — especially those coming from out of town — can find good spots faster, while also giving KC locals a fun way to see the city through other interns' eyes.
+
+## Tech Stack
+
+- [Vue 3](https://vuejs.org/) + [Vite](https://vite.dev/)
+- [Leaflet](https://leafletjs.com/) via [@vue-leaflet/vue-leaflet](https://github.com/vue-leaflet/vue-leaflet) for the interactive map
+- [Vue Router](https://router.vuejs.org/)
 
 ## Project Setup
 
@@ -42,3 +45,4 @@ npm run build
 ```sh
 npm run lint
 ```
+
