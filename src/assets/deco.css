@@ -1,0 +1,614 @@
+/* ============================================================
+   THE FOUNTAIN CITY ATLAS — Art Deco design system
+   Two themes: "Skyline at Dusk" (dark) & "Daylight Parchment" (light)
+   ============================================================ */
+
+/* ---------- Structural tokens (theme-independent) ---------- */
+:root {
+  --font-display: 'Limelight', 'Marcellus', serif;      /* marquee wordmark */
+  --font-heading: 'Marcellus', Georgia, serif;          /* headings, place names */
+  --font-body: 'Josefin Sans', 'Avenir Next', sans-serif; /* UI + body copy */
+  --font-editorial: 'Cormorant Garamond', Georgia, serif; /* italic taglines */
+
+  --nav-h: 72px;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 200ms;
+  --dur: 400ms;
+  --dur-slow: 700ms;
+
+  --track-wide: 0.32em;   /* eyebrow / label letterspacing */
+  --track: 0.14em;        /* button letterspacing */
+}
+
+/* ---------- Skyline at Dusk (dark — the signature theme) ---------- */
+:root,
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #0a101f;
+  --bg-2: #0e1628;
+  --surface: #121d34;
+  --surface-2: #182642;
+  --surface-3: #1e2f52;
+
+  --ink: #f0e6cf;
+  --ink-soft: #cbbd9e;
+  --ink-faint: #8f846a;
+  --on-gold: #1c1607;
+
+  --gold: #d3ac5f;
+  --gold-bright: #eed398;
+  --gold-deep: #9d7a2f;
+  --emerald: #46a78d;
+
+  --line: rgba(211, 172, 95, 0.34);
+  --line-soft: rgba(211, 172, 95, 0.15);
+  --overlay: rgba(5, 9, 18, 0.74);
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
+  --shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --glow-gold: 0 0 22px rgba(211, 172, 95, 0.35);
+  --star: #e9c76f;
+
+  /* Skyline illustration */
+  --sky-top: #070c18;
+  --sky-mid: #131f3e;
+  --sky-plum: #3b2c4e;
+  --sky-horizon: #b06a3e;
+  --sun-core: #f0c87e;
+  --bldg-back: #101a30;
+  --bldg-mid: #0a1224;
+  --bldg-front: #05080f;
+  --window: #ecd193;
+  --ray: rgba(224, 186, 110, 0.16);
+}
+
+/* ---------- Daylight Parchment (light) ---------- */
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --bg: #f3ebda;
+  --bg-2: #ece1c9;
+  --surface: #faf5e9;
+  --surface-2: #f0e7d0;
+  --surface-3: #e7dbbd;
+
+  --ink: #22304e;
+  --ink-soft: #45516e;
+  --ink-faint: #7b755d;
+  --on-gold: #201806;
+
+  --gold: #8f6b1e;
+  --gold-bright: #b3891f;
+  --gold-deep: #6f5316;
+  --emerald: #1e7a62;
+
+  --line: rgba(143, 107, 30, 0.42);
+  --line-soft: rgba(143, 107, 30, 0.18);
+  --overlay: rgba(41, 33, 14, 0.45);
+  --shadow: 0 16px 44px rgba(94, 74, 32, 0.22);
+  --shadow-soft: 0 8px 20px rgba(94, 74, 32, 0.15);
+  --glow-gold: 0 0 18px rgba(179, 137, 31, 0.28);
+  --star: #a87e22;
+
+  /* Skyline illustration — vintage travel-poster daylight */
+  --sky-top: #e9ddc0;
+  --sky-mid: #f2e6c8;
+  --sky-plum: #f0dcae;
+  --sky-horizon: #e9c47e;
+  --sun-core: #e6b45c;
+  --bldg-back: #a99e7f;
+  --bldg-mid: #5d6579;
+  --bldg-front: #2c3854;
+  --window: #f3ebda;
+  --ray: rgba(180, 140, 60, 0.18);
+}
+
+/* ---------- Base ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color var(--dur) ease, color var(--dur) ease;
+}
+
+/* Faint diamond lattice over the whole app — texture, not noise */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image:
+    repeating-linear-gradient(45deg, var(--gold) 0 1px, transparent 1px 26px),
+    repeating-linear-gradient(-45deg, var(--gold) 0 1px, transparent 1px 26px);
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  line-height: 1.2;
+  margin: 0;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--gold);
+}
+
+img {
+  max-width: 100%;
+}
+
+button {
+  font-family: var(--font-body);
+}
+
+::selection {
+  background: var(--gold);
+  color: var(--on-gold);
+}
+
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+/* ---------- Type utilities ---------- */
+.eyebrow {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.editorial {
+  font-family: var(--font-editorial);
+  font-style: italic;
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.9rem 2rem 0.78rem; /* Josefin sits high; rebalance */
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: var(--track);
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  background: transparent;
+  clip-path: polygon(
+    12px 0, calc(100% - 12px) 0, 100% 12px,
+    100% calc(100% - 12px), calc(100% - 12px) 100%,
+    12px 100%, 0 calc(100% - 12px), 0 12px
+  );
+  transition:
+    background-color var(--dur-fast) ease,
+    color var(--dur-fast) ease,
+    box-shadow var(--dur-fast) ease,
+    transform var(--dur-fast) var(--ease-out),
+    filter var(--dur-fast) ease;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--glow-gold);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-gold {
+  border: none;
+  color: var(--on-gold);
+  background: linear-gradient(160deg, var(--gold-bright) 0%, var(--gold) 45%, var(--gold-deep) 100%);
+  /* drop-shadow (not box-shadow) so the extrusion follows the clipped octagon */
+  --btn-extrude: color-mix(in srgb, var(--gold-deep) 60%, #1a1206);
+  filter: drop-shadow(0 3px 0 var(--btn-extrude)) drop-shadow(0 10px 14px rgba(0, 0, 0, 0.28));
+}
+
+.btn-gold:hover {
+  filter: brightness(1.08) drop-shadow(0 4px 0 var(--btn-extrude))
+    drop-shadow(0 14px 18px rgba(0, 0, 0, 0.3));
+}
+
+.btn-gold:active {
+  transform: translateY(2px);
+  filter: brightness(1.02) drop-shadow(0 1px 0 var(--btn-extrude))
+    drop-shadow(0 4px 8px rgba(0, 0, 0, 0.28));
+}
+
+/* On parchment, the token golds run muddy — use a brighter brass plate */
+[data-theme='light'] .btn-gold {
+  background: linear-gradient(160deg, #e3c06c 0%, #c69f42 45%, #9a7523 100%);
+  --btn-extrude: #6b5219;
+  filter: drop-shadow(0 3px 0 var(--btn-extrude)) drop-shadow(0 9px 12px rgba(94, 74, 32, 0.3));
+}
+
+[data-theme='light'] .btn-gold:hover {
+  filter: brightness(1.06) drop-shadow(0 4px 0 var(--btn-extrude))
+    drop-shadow(0 12px 16px rgba(94, 74, 32, 0.32));
+}
+
+.btn-ghost {
+  /* translucent plate so the outline button stays legible over imagery */
+  background: color-mix(in srgb, var(--bg) 45%, transparent);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+.btn-ghost:hover {
+  background: color-mix(in srgb, var(--gold) 14%, var(--bg) 30%);
+}
+
+/* ---------- Deco ornaments ---------- */
+/* Double-line frame */
+.deco-frame {
+  position: relative;
+  border: 1px solid var(--line);
+}
+
+.deco-frame::before {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border: 1px solid var(--line-soft);
+  pointer-events: none;
+}
+
+/* Gold corner brackets — combine with .deco-frame or use alone */
+.deco-corners {
+  background-image:
+    linear-gradient(var(--gold), var(--gold)), linear-gradient(var(--gold), var(--gold)),
+    linear-gradient(var(--gold), var(--gold)), linear-gradient(var(--gold), var(--gold)),
+    linear-gradient(var(--gold), var(--gold)), linear-gradient(var(--gold), var(--gold)),
+    linear-gradient(var(--gold), var(--gold)), linear-gradient(var(--gold), var(--gold));
+  background-repeat: no-repeat;
+  background-size:
+    22px 2px, 2px 22px,
+    22px 2px, 2px 22px,
+    22px 2px, 2px 22px,
+    22px 2px, 2px 22px;
+  background-position:
+    0 0, 0 0,
+    100% 0, 100% 0,
+    0 100%, 0 100%,
+    100% 100%, 100% 100%;
+}
+
+/* Small diamond glyph, used as a separator ornament */
+.deco-diamond {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  background: var(--gold);
+  transform: rotate(45deg);
+  flex: none;
+}
+
+/* Label with hairlines either side: ── LABEL ── */
+.deco-rule-label {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.deco-rule-label::before,
+.deco-rule-label::after {
+  content: '';
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(90deg, transparent, var(--line));
+}
+
+.deco-rule-label::after {
+  background: linear-gradient(90deg, var(--line), transparent);
+}
+
+/* Chevron band — closing CTA strips */
+.deco-chevrons {
+  background-image: repeating-linear-gradient(
+    135deg,
+    var(--line-soft) 0 1px, transparent 1px 14px,
+    var(--line-soft) 14px 15px, transparent 15px 28px
+  );
+}
+
+/* ---------- Cards ---------- */
+.deco-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  /* soft drop + inner top highlight = embossed plate */
+  box-shadow:
+    var(--shadow-soft),
+    inset 0 1px 0 color-mix(in srgb, var(--gold-bright) 14%, transparent);
+  transition:
+    transform var(--dur) var(--ease-out),
+    box-shadow var(--dur) ease,
+    border-color var(--dur) ease,
+    background-color var(--dur) ease;
+}
+
+.deco-card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    var(--shadow),
+    var(--glow-gold),
+    inset 0 1px 0 color-mix(in srgb, var(--gold-bright) 22%, transparent);
+  border-color: var(--gold);
+}
+
+/* ---------- 3D depth system (used with the v-tilt directive) ---------- */
+.tilt,
+.tilt:hover {
+  position: relative;
+  transform: perspective(950px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg))
+    translateY(var(--tilt-lift, 0px));
+  transform-style: preserve-3d;
+  transition:
+    transform 220ms var(--ease-out),
+    box-shadow var(--dur) ease,
+    border-color var(--dur) ease;
+  will-change: transform;
+}
+
+.tilt:hover {
+  --tilt-lift: -6px;
+}
+
+/* Gold sheen that follows the pointer across the surface */
+.tilt::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    340px circle at var(--gx, 50%) var(--gy, 50%),
+    color-mix(in srgb, var(--gold-bright) 15%, transparent),
+    transparent 65%
+  );
+  opacity: var(--go, 0);
+  transition: opacity 300ms ease;
+}
+
+/* Children that float above a tilted card */
+.tilt .lift-1 {
+  transform: translateZ(18px);
+}
+
+.tilt .lift-2 {
+  transform: translateZ(32px);
+}
+
+/* ---------- Scroll-reveal ---------- */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity var(--dur-slow) ease,
+    transform var(--dur-slow) var(--ease-out);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Entrance animation for page content */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes float-cue {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+
+/* ---------- Route transitions (used by App.vue) ---------- */
+.page-enter-active {
+  transition: opacity 350ms ease, transform 350ms var(--ease-out);
+  transform-origin: 50% 0;
+}
+
+.page-leave-active {
+  transition: opacity 200ms ease;
+}
+
+.page-enter-from {
+  opacity: 0;
+  transform: perspective(1200px) translateY(16px) rotateX(2deg);
+}
+
+.page-leave-to {
+  opacity: 0;
+}
+
+/* ============================================================
+   Leaflet chrome — themed map furniture
+   ============================================================ */
+
+/* Night map: invert OSM tiles into deep navy; day map: warm parchment */
+[data-theme='dark'] .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(196deg) brightness(0.82) contrast(0.92) saturate(0.5) sepia(0.22);
+}
+
+[data-theme='light'] .leaflet-tile-pane {
+  filter: sepia(0.3) saturate(0.8) brightness(1.03) contrast(0.94);
+}
+
+.leaflet-container {
+  background: var(--bg-2);
+  font-family: var(--font-body);
+}
+
+.leaflet-bar {
+  border: 1px solid var(--line) !important;
+  border-radius: 0 !important;
+  box-shadow: var(--shadow-soft) !important;
+}
+
+.leaflet-bar a {
+  background: var(--surface) !important;
+  color: var(--gold) !important;
+  border-bottom: 1px solid var(--line-soft) !important;
+  border-radius: 0 !important;
+  width: 34px !important;
+  height: 34px !important;
+  line-height: 34px !important;
+  font-family: var(--font-heading);
+  transition: background-color var(--dur-fast) ease;
+}
+
+.leaflet-bar a:hover {
+  background: var(--surface-2) !important;
+  color: var(--gold-bright) !important;
+}
+
+.leaflet-bar a:last-child {
+  border-bottom: none !important;
+}
+
+.leaflet-control-attribution {
+  background: color-mix(in srgb, var(--surface) 82%, transparent) !important;
+  color: var(--ink-faint) !important;
+  font-size: 0.62rem !important;
+  letter-spacing: 0.02em;
+}
+
+.leaflet-control-attribution a {
+  color: var(--gold) !important;
+}
+
+/* ---------- Custom gold deco map pin (Leaflet divIcon) ---------- */
+.deco-marker {
+  background: none;
+  border: none;
+}
+
+.deco-pin {
+  width: 34px;
+  height: 44px;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.45));
+  transform-origin: 50% 100%;
+  animation: pin-drop 600ms var(--ease-out) backwards;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.deco-pin:hover {
+  transform: scale(1.14);
+}
+
+.deco-pin svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes pin-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-18px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------- Scrollbars ---------- */
+@media (pointer: fine) {
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--bg-2);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--surface-3);
+    border: 2px solid var(--bg-2);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--gold-deep);
+  }
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
