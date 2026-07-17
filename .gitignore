@@ -40,3 +40,5 @@ __screenshots__/
 
 #Personal Files
 CLAUDE.md
+.env
+.env.local
