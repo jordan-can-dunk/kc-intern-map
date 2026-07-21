@@ -1,31 +1,54 @@
 <script setup>
-import { onMounted, onUnmounted, ref, watch } from 'vue'
+import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { LMap, LTileLayer, LMarker } from '@vue-leaflet/vue-leaflet'
 import L from 'leaflet'
 import { gsap } from 'gsap'
-import { pins } from '../data/pins.js'
 
 const route = useRoute()
 const router = useRouter()
 const root = ref(null)
-
-// :id from the URL is a string; pin ids are numbers
-const pin = pins.find((p) => p.id === Number(route.params.id))
+const pin = ref(null)
+const notFound = ref(false)
 
 const currentIndex = ref(0)
+const imgLoaded = ref(false)
+const showPlaceholder = ref(false)
+const PLACEHOLDER_DELAY = 400 // ms a photo must still be loading before we show the placeholder
+let imgTimer
 let ctx
+
+// start (or restart) tracking the current photo's load. Show the placeholder
+// only if it's STILL loading after PLACEHOLDER_DELAY, so quick/cached swaps
+// don't flash it.
+function startImgLoad() {
+  imgLoaded.value = false
+  clearTimeout(imgTimer)
+  imgTimer = setTimeout(() => {
+    if (!imgLoaded.value) showPlaceholder.value = true
+  }, PLACEHOLDER_DELAY)
+}
+
+function onImgLoad() {
+  imgLoaded.value = true
+  clearTimeout(imgTimer)
+  showPlaceholder.value = false
+}
 
 function prevPhoto() {
   if (currentIndex.value > 0) currentIndex.value--
 }
 
 function nextPhoto() {
-  if (currentIndex.value < pin.photos.length - 1) currentIndex.value++
+  if (currentIndex.value < pin.value.photos.length - 1) currentIndex.value++
 }
 
 /* slide + fade the photo in from the direction you're moving */
 watch(currentIndex, (newIdx, oldIdx) => {
+  // the browser keeps showing the previous photo until the next one finishes
+  // downloading — start tracking the new photo's load so the placeholder can
+  // cover the stale image if it takes a moment
+  startImgLoad()
   const dir = newIdx > oldIdx ? 1 : -1
   gsap.fromTo(
     '.carousel-photo',
@@ -80,8 +103,17 @@ function formatDate(iso) {
   })
 }
 
-onMounted(() => {
-  if (!root.value || !pin) return
+onMounted(async () => {
+  const response = await fetch(`http://localhost:8000/api/pins/${route.params.id}/`)
+  if (response.ok) {
+    pin.value = await response.json()
+    startImgLoad()
+  } else {
+    notFound.value = true
+  }
+
+  if (!root.value || !pin.value) return
+  await nextTick()
   ctx = gsap.context(() => {
     gsap.from('.reveal', {
       autoAlpha: 0,
@@ -96,12 +128,13 @@ onMounted(() => {
 
 onUnmounted(() => {
   ctx?.revert()
+  clearTimeout(imgTimer)
 })
 </script>
 
 <template>
   <!-- bad URL guard: /pin/999 shouldn't crash the page -->
-  <div v-if="!pin" class="lost">
+  <div v-if="notFound" class="lost">
     <svg viewBox="0 0 100 92" width="72" height="66" aria-hidden="true">
       <path
         d="M50 88 C22 68 4 50 4 30 C4 13 17 4 29 4 C38 4 46 9 50 16 C54 9 62 4 71 4 C83 4 96 13 96 30 C96 50 78 68 50 88 Z"
@@ -115,10 +148,29 @@ onUnmounted(() => {
     <button class="btn-kc btn-kc--red" @click="router.push('/map')">Back to the map</button>
   </div>
 
-  <div v-else ref="root" class="detail-container">
+  <div v-else-if="pin" ref="root" class="detail-container">
     <!-- ============ CAROUSEL ============ -->
     <div class="carousel reveal" @touchstart.passive="onTouchStart" @touchend.passive="onTouchEnd">
-      <img :src="pin.photos[currentIndex]" :alt="`Photo ${currentIndex + 1} of ${pin.name}`" class="carousel-photo" />
+      <img
+        :src="pin.photos[currentIndex]"
+        :alt="`Photo ${currentIndex + 1} of ${pin.name}`"
+        class="carousel-photo"
+        @load="onImgLoad"
+        @error="onImgLoad"
+      />
+
+      <!-- covers the (stale) image only if the current one is still loading after a beat -->
+      <div v-if="showPlaceholder" class="carousel-loading">
+        <svg class="carousel-loading-heart" viewBox="0 0 100 92" width="44" height="40" aria-hidden="true">
+          <path
+            d="M50 88 C22 68 4 50 4 30 C4 13 17 4 29 4 C38 4 46 9 50 16 C54 9 62 4 71 4 C83 4 96 13 96 30 C96 50 78 68 50 88 Z"
+            fill="#e31837"
+            stroke="#1e1b18"
+            stroke-width="5"
+          />
+        </svg>
+        <span class="carousel-loading-text">Loading photo…</span>
+      </div>
 
       <button v-if="currentIndex > 0" class="carousel-btn prev" aria-label="Previous photo" @click="prevPhoto">‹</button>
       <button
@@ -195,7 +247,7 @@ onUnmounted(() => {
             fill="#e31837"
           />
         </svg>
-        Pinned by {{ pin.submittedBy || 'Anonymous' }} · {{ formatDate(pin.submittedAt) }}
+        Pinned by {{ pin.submitted_by || 'Anonymous' }} · {{ formatDate(pin.submitted_at) }}
       </p>
     </div>
   </div>
@@ -224,6 +276,42 @@ onUnmounted(() => {
   aspect-ratio: 4 / 3;
   object-fit: cover;
   display: block;
+}
+
+/* placeholder shown while the current photo is still downloading */
+.carousel-loading {
+  position: absolute;
+  inset: 0;
+  background: var(--cream-deep);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+}
+
+.carousel-loading-heart {
+  animation: carousel-pulse 0.9s var(--ease-bounce) infinite;
+  transform-origin: 50% 60%;
+}
+
+@keyframes carousel-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+}
+
+.carousel-loading-text {
+  font-family: var(--font-varsity);
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0.7;
 }
 
 .carousel-btn {

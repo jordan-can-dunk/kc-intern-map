@@ -76,4 +76,4 @@ npm run lint
 
 - The homepage's illustrated map expects an image at `public/photos/kc-illustrated-map.png` (generated artwork, not committed by the build).
 - The add-pin form submits to a backend API at `http://localhost:8000/api/pins/` — the map and detail pages work fine without it (mock data lives in `src/data/pins.js`), but submitting a new pin requires the backend to be running. The backend is not on my github for privacy reasons, but soon the application will be hosted on a live URL that I will link.
-- Photo upload to permanent storage (Cloudinary) is planned but not wired up yet — photos can be selected in the form but aren't uploaded.
+- Photo upload to permanent storage (AWS S3) is planned but not wired up yet — photos can be selected in the form but aren't uploaded.

@@ -94,7 +94,6 @@ async function submitPin() {
   if (!lat.value) errors.value.push('location')
 
   if (errors.value.length) {
-    // shake the banner so the miss is impossible to miss
     gsap.fromTo('.error-banner', { x: -8 }, { x: 0, duration: 0.5, ease: 'elastic.out(1.2, 0.3)' })
     return
   }
@@ -116,7 +115,18 @@ async function submitPin() {
     })
 
     if (response.ok) {
-      // heart-burst success moment, then off to the map
+      const newPin = await response.json()
+
+      for (const file of photos.value) {
+        const formData = new FormData()
+        formData.append('pin', newPin.id)
+        formData.append('media', file)
+        await fetch('http://localhost:8000/api/pin-photos/', {
+          method: 'POST',
+          body: formData,
+        })
+      }
+
       success.value = true
       gsap.fromTo(
         '.success-heart',
@@ -125,6 +135,8 @@ async function submitPin() {
       )
       gsap.to('.success-overlay', { autoAlpha: 1, duration: 0.25 })
       setTimeout(() => router.push('/map'), 1100)
+    } else if (response.status === 429) {
+      errors.value = ["you're submitting too many pins in too little time — for security purposes, try again in a bit"]
     } else {
       errors.value = ['something went wrong on the server — try again']
     }

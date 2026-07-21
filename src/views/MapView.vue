@@ -3,7 +3,6 @@ import { LMap, LTileLayer, LMarker } from '@vue-leaflet/vue-leaflet'
 import L from 'leaflet'
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { gsap } from 'gsap'
-import { pins } from '../data/pins.js'
 import PinPopup from '../components/PinPopup.vue'
 
 const root = ref(null)
@@ -11,13 +10,39 @@ const mapRef = ref(null)
 const selectedPin = ref(null)
 const expandedKey = ref(null)
 const loading = ref(true)
+const showLoader = ref(false)
+const pins = ref([])
 
 let ctx
+let loaderTimer
+// the heart drop-in needs TWO things done before it can run: the map must be
+// ready (so markers exist in the DOM) and the pins must have loaded (so there
+// are markers to animate). Either can finish first, so whichever finishes last
+// triggers the drop via dropHearts().
+let mapReady = false
+let pinsLoaded = false
+let heartsDropped = false
+
+function dropHearts() {
+  if (heartsDropped || !mapReady || !pinsLoaded) return
+  heartsDropped = true
+  nextTick(() => {
+    gsap.from(root.value.querySelectorAll('.kc-pin'), {
+      y: -90,
+      autoAlpha: 0,
+      stagger: 0.09,
+      duration: 0.7,
+      delay: 0.45,
+      ease: 'back.out(1.7)',
+      clearProps: 'all',
+    })
+  })
+}
 
 /* ---- group pins that share exact coordinates, so stacks can fan out ---- */
 const groups = computed(() => {
   const byCoord = new Map()
-  for (const pin of pins) {
+  for (const pin of pins.value) {
     const key = `${pin.lat},${pin.lng}`
     if (!byCoord.has(key)) byCoord.set(key, [])
     byCoord.get(key).push(pin)
@@ -121,29 +146,30 @@ function onMapClick() {
 }
 
 function onMapReady() {
+  clearTimeout(loaderTimer)
   // pixel offsets mean something different at every zoom level, so
   // re-space an open fan whenever the zoom changes
   mapRef.value?.leafletObject?.on('zoomend', () => {
     if (expandedKey.value) computeFanPositions(groups.value.get(expandedKey.value))
   })
-  // let the first tiles paint, then fade the loader and rain the hearts in
+  // let the first tiles paint, then fade the loader (if it ever showed)
   nextTick(() => {
-    gsap.to('.map-loader', {
-      autoAlpha: 0,
-      duration: 0.4,
-      delay: 0.3,
-      onComplete: () => (loading.value = false),
-    })
-    gsap.from(root.value.querySelectorAll('.kc-pin'), {
-      y: -90,
-      autoAlpha: 0,
-      stagger: 0.09,
-      duration: 0.7,
-      delay: 0.45,
-      ease: 'back.out(1.7)',
-      clearProps: 'all',
-    })
+    if (showLoader.value) {
+      gsap.to('.map-loader', {
+        autoAlpha: 0,
+        duration: 0.4,
+        delay: 0.3,
+        onComplete: () => {
+          loading.value = false
+          showLoader.value = false
+        },
+      })
+    } else {
+      loading.value = false
+    }
   })
+  mapReady = true
+  dropHearts()
 }
 
 function zoom(dir) {
@@ -165,12 +191,20 @@ function popupLeave(el, done) {
   gsap.to(card, { y: '115%', duration: 0.3, ease: 'power2.in', onComplete: done })
 }
 
-onMounted(() => {
+onMounted(async () => {
   ctx = gsap.context(() => {}, root.value)
+  loaderTimer = setTimeout(() => {
+    if (loading.value) showLoader.value = true
+  }, 250)
+  const response = await fetch('http://localhost:8000/api/pins/')
+  pins.value = await response.json()
+  pinsLoaded = true
+  dropHearts()
 })
 
 onUnmounted(() => {
   ctx?.revert()
+  clearTimeout(loaderTimer)
 })
 </script>
 
@@ -199,7 +233,7 @@ onUnmounted(() => {
     </l-map>
 
     <!-- loader -->
-    <div v-if="loading" class="map-loader">
+    <div v-if="showLoader" class="map-loader">
       <svg class="loader-heart" viewBox="0 0 100 92" width="64" height="59">
         <path
           d="M50 88 C22 68 4 50 4 30 C4 13 17 4 29 4 C38 4 46 9 50 16 C54 9 62 4 71 4 C83 4 96 13 96 30 C96 50 78 68 50 88 Z"

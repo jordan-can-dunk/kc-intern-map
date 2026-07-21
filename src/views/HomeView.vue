@@ -5,10 +5,10 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { SplitText } from 'gsap/SplitText'
 import Lenis from 'lenis'
-import { pins } from '../data/pins'
 
 const router = useRouter()
 const root = ref(null)
+const pins = ref([])
 
 // Lives in public/photos/ — save your generated poster there with this exact name
 const posterSrc = '/photos/kc-illustrated-map.png'
@@ -21,6 +21,10 @@ let tickerFn
 
 onMounted(() => {
   if (!root.value) return
+
+  fetch('http://localhost:8000/api/pins/')
+    .then((response) => response.json())
+    .then((data) => { pins.value = data })
 
   // --- Lenis smooth scroll, driven by GSAP's ticker so ScrollTrigger stays in sync
   lenis = new Lenis({ autoRaf: false, lerp: 0.12 })
@@ -456,7 +460,7 @@ function starString(rating) {
         <img
           class="poster-img"
           :src="posterSrc"
-          alt="Hand-drawn illustrated poster map of Kansas City showing Union Station, Liberty Memorial, the Nelson-Atkins Museum, Arrowhead and Kauffman stadiums, and more"
+          alt="Image loading error: KC illustrated map poster"
         />
       </div>
     </section>

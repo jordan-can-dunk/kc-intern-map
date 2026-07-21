@@ -2,7 +2,7 @@
   <div class="popup-overlay" @click.self="emit('close')">
     <div class="popup-card">
       <button class="close-btn" aria-label="Close" @click="emit('close')">✕</button>
-      <p class="popup-eyebrow">Pinned by {{ pin.submittedBy ?? 'Anonymous' }}</p>
+      <p class="popup-eyebrow">Pinned by {{ pin.submitted_by ?? 'Anonymous' }}</p>
       <h2 class="popup-name">{{ pin.name }}</h2>
       <p class="popup-rating" :aria-label="pin.rating + ' out of 5 stars'">
         <span class="stars">{{ '★'.repeat(pin.rating) }}{{ '☆'.repeat(5 - pin.rating) }}</span>
