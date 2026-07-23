@@ -104,7 +104,7 @@ function formatDate(iso) {
 }
 
 onMounted(async () => {
-  const response = await fetch(`http://localhost:8000/api/pins/${route.params.id}/`)
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/pins/${route.params.id}/`)
   if (response.ok) {
     pin.value = await response.json()
     startImgLoad()

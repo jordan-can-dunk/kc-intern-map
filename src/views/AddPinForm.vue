@@ -101,7 +101,7 @@ async function submitPin() {
 
   submitting.value = true
   try {
-    const response = await fetch('http://localhost:8000/api/pins/', {
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/pins/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -123,7 +123,7 @@ async function submitPin() {
         const formData = new FormData()
         formData.append('pin', newPin.id)
         formData.append('media', file)
-        await fetch('http://localhost:8000/api/pin-photos/', {
+        await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/pin-photos/`, {
           method: 'POST',
           body: formData,
         })

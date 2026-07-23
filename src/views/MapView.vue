@@ -196,7 +196,7 @@ onMounted(async () => {
   loaderTimer = setTimeout(() => {
     if (loading.value) showLoader.value = true
   }, 250)
-  const response = await fetch('http://localhost:8000/api/pins/')
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/pins/`)
   pins.value = await response.json()
   pinsLoaded = true
   dropHearts()

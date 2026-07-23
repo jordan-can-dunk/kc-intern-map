@@ -22,7 +22,7 @@ let tickerFn
 onMounted(() => {
   if (!root.value) return
 
-  fetch('http://localhost:8000/api/pins/')
+  fetch(`${import.meta.env.VITE_API_BASE_URL}/api/pins/`)
     .then((response) => response.json())
     .then((data) => { pins.value = data })
 
