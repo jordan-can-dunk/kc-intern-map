@@ -15,7 +15,6 @@ function goToAddPin() {
       <span class="navbar-title navbar-title--brand">
         <span class="brand-kc">KC</span> Intern Map
       </span>
-      <button class="add-pin-btn" @click="goToAddPin">+ Add pin</button>
     </template>
     <template v-else-if="route.name === 'map'">
       <button class="back-btn" @click="router.push('/')">← Home</button>

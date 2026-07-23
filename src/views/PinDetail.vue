@@ -247,7 +247,7 @@ onUnmounted(() => {
             fill="#e31837"
           />
         </svg>
-        Pinned by {{ pin.submitted_by || 'Anonymous' }} · {{ formatDate(pin.submitted_at) }}
+        Pinned by {{ pin.submitted_by || 'Anonymous' }}<template v-if="pin.company"> at {{ pin.company }}</template> · {{ formatDate(pin.submitted_at) }}
       </p>
     </div>
   </div>

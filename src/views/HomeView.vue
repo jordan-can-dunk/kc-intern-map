@@ -115,7 +115,7 @@ onMounted(() => {
         /* ============ MARQUEE: infinite loop, kicked faster by scroll velocity ============ */
         const marquee = gsap.to('.marquee-track', {
           xPercent: -50,
-          duration: 18,
+          duration: 36,
           ease: 'none',
           repeat: -1,
         })
@@ -326,11 +326,11 @@ function starString(rating) {
         <div class="hero-copy">
           <p class="hero-eyebrow">For KC interns · by KC interns</p>
           <h1 class="hero-headline">
-            The map every intern <span class="accent-red">leaves behind.</span>
+            Kansas City's Interns: <span class="accent-red">Off the Clock</span>
           </h1>
           <p class="hero-sub">
             Every summer, interns find the best BBQ, the good coffee, the park nobody mentions —
-            then leave and take the list with them. Not anymore. Pin your spots. Steal theirs.
+            then leave and take the list with them. Not anymore. Pin your favorite spots. Go to other interns' favorites.
           </p>
           <div class="hero-ctas">
             <button class="btn-kc btn-kc--red magnetic" @click="router.push('/map')">Open the map</button>
@@ -363,12 +363,10 @@ function starString(rating) {
       <!-- marquee -->
       <div class="marquee" aria-hidden="true">
         <div class="marquee-track">
-          <span
-            >BBQ&nbsp;·&nbsp;COFFEE&nbsp;·&nbsp;PARKS&nbsp;·&nbsp;JAZZ&nbsp;·&nbsp;FOUNTAINS&nbsp;·&nbsp;MURALS&nbsp;·&nbsp;GAME&nbsp;DAY&nbsp;·&nbsp;FIRST&nbsp;FRIDAYS&nbsp;·&nbsp;</span
-          >
-          <span
-            >BBQ&nbsp;·&nbsp;COFFEE&nbsp;·&nbsp;PARKS&nbsp;·&nbsp;JAZZ&nbsp;·&nbsp;FOUNTAINS&nbsp;·&nbsp;MURALS&nbsp;·&nbsp;GAME&nbsp;DAY&nbsp;·&nbsp;FIRST&nbsp;FRIDAYS&nbsp;·&nbsp;</span
-          >
+          <span>BBQ&nbsp;·&nbsp;COFFEE&nbsp;·&nbsp;PARKS&nbsp;·&nbsp;JAZZ&nbsp;·&nbsp;FOUNTAINS&nbsp;·&nbsp;MURALS&nbsp;·&nbsp;GAME&nbsp;DAY&nbsp;·&nbsp;FIRST&nbsp;FRIDAYS&nbsp;·&nbsp;</span>
+          <span>BBQ&nbsp;·&nbsp;COFFEE&nbsp;·&nbsp;PARKS&nbsp;·&nbsp;JAZZ&nbsp;·&nbsp;FOUNTAINS&nbsp;·&nbsp;MURALS&nbsp;·&nbsp;GAME&nbsp;DAY&nbsp;·&nbsp;FIRST&nbsp;FRIDAYS&nbsp;·&nbsp;</span>
+          <span>BBQ&nbsp;·&nbsp;COFFEE&nbsp;·&nbsp;PARKS&nbsp;·&nbsp;JAZZ&nbsp;·&nbsp;FOUNTAINS&nbsp;·&nbsp;MURALS&nbsp;·&nbsp;GAME&nbsp;DAY&nbsp;·&nbsp;FIRST&nbsp;FRIDAYS&nbsp;·&nbsp;</span>
+          <span>BBQ&nbsp;·&nbsp;COFFEE&nbsp;·&nbsp;PARKS&nbsp;·&nbsp;JAZZ&nbsp;·&nbsp;FOUNTAINS&nbsp;·&nbsp;MURALS&nbsp;·&nbsp;GAME&nbsp;DAY&nbsp;·&nbsp;FIRST&nbsp;FRIDAYS&nbsp;·&nbsp;</span>
         </div>
       </div>
     </section>
@@ -400,7 +398,7 @@ function starString(rating) {
         <article class="step-card">
           <p class="step-num">Step 03</p>
           <h3>Leave your mark</h3>
-          <p>Found a gem? Pin it for next summer's class. Anonymous is fine.</p>
+          <p>Found a gem? Pin it for other interns to find.</p>
         </article>
       </div>
       <div class="how-cta">
@@ -476,7 +474,23 @@ function starString(rating) {
             fill="#e31837"
           />
         </svg>
-        in Kansas City
+        by
+        <a
+          class="footer-link"
+          href="https://www.linkedin.com/in/jordanmduncan/"
+          target="_blank"
+          rel="noopener"
+          >Jordan</a
+        >
+        as a
+        <a
+          class="footer-link"
+          href="https://dimin.com/"
+          target="_blank"
+          rel="noopener"
+          >Dimensional Innovations</a
+        >
+        intern
       </p>
       <div class="footer-ctas">
         <button class="btn-kc btn-kc--red" @click="router.push('/map')">Open the map</button>
@@ -692,10 +706,16 @@ function starString(rating) {
 
 .wave-to-royal {
   background: var(--cream);
+  /* overlap the royal section below by 2px so the pinned-scroll sub-pixel
+     seam can't reveal the cream page background (royal-on-royal = invisible) */
+  margin-bottom: -2px;
 }
 
 .wave-to-cream {
   background: var(--kc-royal);
+  /* close the seams above (royal/royal) and below (cream/cream) the same way */
+  margin-top: -2px;
+  margin-bottom: -2px;
 }
 
 /* ================= HOW IT WORKS ================= */
@@ -728,6 +748,13 @@ function starString(rating) {
 @media (min-width: 768px) {
   .steps-row {
     grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* Desktop pins this section to the top of the viewport. If it's shorter than
+     the viewport, the transparent pin-spacer below it shows the page background
+     mid-scroll (the "detached wave" gap). Fill the full viewport so nothing peeks. */
+  .how-section {
+    min-height: 100vh;
   }
 }
 
@@ -967,16 +994,31 @@ function starString(rating) {
 }
 
 .footer-tag {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--sp-2);
   font-size: 1rem;
-  margin: 0 0 var(--sp-5);
+  line-height: 1.7;
+  max-width: 34ch;
+  margin: 0 auto var(--sp-5);
+  /* flows as one centered sentence that wraps at word boundaries, instead of
+     each word/link being its own centered flex item (which stacked on mobile) */
+  text-align: center;
+  text-wrap: balance;
 }
 
 .footer-heart {
   display: inline-block;
+  vertical-align: middle;
+  margin: 0 3px;
+}
+
+.footer-link {
+  color: var(--kc-gold);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color var(--t-micro) ease;
+}
+
+.footer-link:hover {
+  color: var(--kc-red);
 }
 
 .footer-ctas {

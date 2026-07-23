@@ -7,6 +7,7 @@ const placeName = ref('')
 const description = ref('')
 const tips = ref('')
 const submittedBy = ref('')
+const company = ref('')
 const rating = ref(0)
 const lat = ref(null)
 const lng = ref(null)
@@ -108,6 +109,7 @@ async function submitPin() {
         description: description.value,
         tips: tips.value,
         submitted_by: submittedBy.value,
+        company: company.value,
         rating: rating.value,
         lat: lat.value,
         lng: lng.value,
@@ -208,8 +210,13 @@ onUnmounted(() => {
     </div>
 
     <div class="field reveal">
-      <label for="submitted-by">Your name <span class="opt">(optional — anonymous is fine)</span></label>
+      <label for="submitted-by">Your name <span class="opt">(optional)</span></label>
       <input id="submitted-by" v-model="submittedBy" type="text" placeholder="Who's vouching for this spot?" />
+    </div>
+
+    <div class="field reveal">
+      <label for="company">Company <span class="opt">(optional)</span></label>
+      <input id="company" v-model="company" type="text" placeholder="Where are you interning?" />
     </div>
 
     <div class="field reveal">
